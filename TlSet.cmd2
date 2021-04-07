@@ -1,0 +1,51 @@
+
+
+rem *******************************
+rem Don't edit below this line
+rem *******************************
+rem defragster 4/2021
+
+if EXIST %sketchcmd% (
+  set sketchname=%sketchcmd%
+) ELSE for %%i in (*.ino) do set sketchname=%%i
+
+if "%sketchname%"=="" (
+  echo No Arduino Sketch found!
+  exit 1
+)
+
+set myfolder=.\
+set ino=%myfolder%%sketchname%
+if "x%TlSetTemp%"=="%TlSetTemp%x" set TlSetTemp=%temp%
+set temp1="%TlSetTemp%\arduino_build_%sketchname%"
+set temp2="%TlSetTemp%\arduino_cache_%sketchname%"
+
+set fqbn=TleraCorp:stm32wb:%model%:usb=%usb%,speed=%speed%
+
+if "%1"=="2" (
+  echo Temp: %temp1%
+  echo Temp: %temp2%
+  del /s /q %temp1%>NUL
+  del /s /q %temp2%>NUL
+  echo Temporary files deleted.
+)
+
+if not exist %temp1% mkdir %temp1%
+if not exist %temp2% mkdir %temp2%
+
+if exist %arduino%\portable\sketchbook\libraries\.  set libs=%arduino%\portable\sketchbook\libraries
+if exist %arduino%\portable\sketchbook\libraries\.  echo Building PORTABLE: %libs% 
+
+echo Building Sketch: %ino%
+"%arduino%\arduino-builder" -verbose=1 -warnings=more -compile -logger=human -hardware "%arduino%\hardware" -hardware "%LOCALAPPDATA%\Arduino15\packages" -tools "%arduino%\tools-builder" -tools "%arduino%\hardware\tools\avr" -tools "%LOCALAPPDATA%\Arduino15\packages" -built-in-libraries "%arduino%\libraries" -libraries "%libs%" -fqbn=%fqbn% -build-path %temp1% -build-cache "%temp2%"  %ino%
+
+"%arduino%\arduino-builder" -compile -logger=machine -hardware "%arduino%\hardware" -hardware "%LOCALAPPDATA%\Arduino15\packages" -tools "%arduino%\tools-builder" -tools "%arduino%\hardware\tools\avr" -tools "%LOCALAPPDATA%\Arduino15\packages" -built-in-libraries "%arduino%\libraries" -libraries "%libs%"  -fqbn=%fqbn% -vid-pid=%vid%_%pid% -ide-version=10813 -build-path %temp1% -warnings=none -build-cache "%temp2%" -prefs=build.warn_data_percentage=75 -prefs=runtime.tools.arm-none-eabi-gcc.path=%LOCALAPPDATA%\Arduino15\packages\arduino\tools\arm-none-eabi-gcc\7-2017q4 -prefs=runtime.tools.arm-none-eabi-gcc-7-2017q4.path=%LOCALAPPDATA%\Arduino15\packages\arduino\tools\arm-none-eabi-gcc\7-2017q4 -prefs=runtime.tools.openocd.path=%LOCALAPPDATA%\Arduino15\packages\arduino\tools\openocd\0.10.0-arduino13 -prefs=runtime.tools.openocd-0.10.0-arduino13.path=%LOCALAPPDATA%\Arduino15\packages\arduino\tools\openocd\0.10.0-arduino13 -verbose  %ino%
+
+if not "%1"=="0" (
+  if "%errorlevel%"=="0" (
+    %LOCALAPPDATA%\Arduino15\packages\TleraCorp\hardware\stm32wb\0.1.1/tools/windows/dfu-util.exe -d %vid%:%pid%,0x0483:0xdf11 -a 0 -s 0x08000000:leave -D %temp1%\%ino%.bin 
+  )  
+)
+
+if "%1x"=="x%1" PAUSE
+if not "%1x"=="x%1" exit %errorlevel%

@@ -1,0 +1,26 @@
+@echo off
+SETLOCAL DisableDelayedExpansion EnableExtensions
+title TlSet Arduino CMD line build
+rem *******************************
+rem defragster 4/2021
+rem Frank Bösing 11/2018
+rem Windows Batch to compile Arduino sketches
+
+rem Usage:
+rem compile.cmd 0 : compile sketch
+rem compile.cmd 1 : compile & upload sketch
+rem compile.cmd 2 : rebuild & upload sketch
+rem - Attention: Place compile.cmd in Sketch folder!
+rem
+rem Edit these paths:
+
+set arduino=T:\arduino-1.8.13_t54
+set libs=T:\tCode\libraries
+set tools=T:\Programs\TlSet
+REM Pick a TEMP folder IF not the Windows Default folder - remove REM
+set TlSetTemp=t:\temp
+
+rem *******************************
+rem Set specific variables here:
+rem
+
